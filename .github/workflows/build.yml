@@ -8,6 +8,8 @@ on:
 jobs:
   build:
     runs-on: macos-15
+    permissions:
+      contents: write
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
@@ -48,6 +50,16 @@ jobs:
           name: PhotoCleaner-ipa
           path: ipa/PhotoCleaner.ipa
           retention-days: 30
+
+      - name: Publish simple download link
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete latest --yes --cleanup-tag || true
+          gh release create latest ipa/PhotoCleaner.ipa \
+            --title "PhotoCleaner (latest build)" \
+            --notes "Download PhotoCleaner.ipa below, then install it with Sideloadly." \
+            --target "$GITHUB_SHA" --latest
 
       - uses: actions/upload-artifact@v4
         if: always()
